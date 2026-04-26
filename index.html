@@ -169,7 +169,7 @@
       --spot-x: 50%;
       --spot-y: 0%;
       position: relative;
-      min-height: 27rem;
+      min-height: 32rem;
       border-radius: 24px;
       padding: 2px;
       isolation: isolate;
@@ -246,7 +246,9 @@
       z-index: 2;
       display: flex;
       min-height: inherit;
+      height: 100%;
       flex-direction: column;
+      justify-content: space-between;
       overflow: hidden;
       border-radius: 22px;
       padding: clamp(1.25rem, 2vw, 1.75rem);
@@ -409,14 +411,16 @@
                 <span class="audit-kicker">Sample 01</span>
                 <span class="border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-slate-400">PDF</span>
               </div>
-              <h2 class="text-2xl font-semibold leading-tight text-white sm:text-3xl">
-                Appwrite 1.9.x — Production Readiness Review
-              </h2>
-              <p class="mt-5 flex-1 text-sm leading-6 text-slate-300/80">
-                Independent analysis of PBAC security posture, service boundaries, failure domains, and horizontal scaling readiness — based on the public Appwrite open-source codebase. Not affiliated with Appwrite.
-              </p>
-              <div class="my-7 h-px bg-current opacity-10 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"></div>
-              <a href="appwrite_production_readiness_whitepaper.pdf" class="command-button inline-flex w-full items-center justify-center px-5 text-sm font-bold" aria-label="View Appwrite production readiness portfolio sample">
+              <div class="flex-1">
+                <h2 class="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+                  Appwrite 1.9.x — Production Readiness Review
+                </h2>
+                <p class="mt-5 text-sm leading-6 text-slate-300/80">
+                  Independent analysis of PBAC security posture, service boundaries, failure domains, and horizontal scaling readiness — based on the public Appwrite open-source codebase. Not affiliated with Appwrite.
+                </p>
+              </div>
+              <div class="mt-7 h-px bg-current opacity-10 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"></div>
+              <a href="appwrite_production_readiness_whitepaper.pdf" class="command-button mt-7 inline-flex w-full items-center justify-center px-5 text-sm font-bold" aria-label="View Appwrite production readiness portfolio sample">
                 View Sample Review <span class="ml-2" aria-hidden="true">&rarr;</span>
               </a>
             </div>
@@ -431,14 +435,16 @@
                 <span class="audit-kicker">Sample 02</span>
                 <span class="border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-slate-400">PDF</span>
               </div>
-              <h2 class="text-2xl font-semibold leading-tight text-white sm:text-3xl">
-                Biome Toolchain — Architecture Review
-              </h2>
-              <p class="mt-5 flex-1 text-sm leading-6 text-slate-300/80">
-                Independent analysis of Rust-based formatting performance, parser architecture, cache behavior, and node-cache levers — based on the public Biome open-source codebase. Not affiliated with Biome.
-              </p>
-              <div class="my-7 h-px bg-current opacity-10 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"></div>
-              <a href="biome_technical_whitepaper_fixed.pdf" class="command-button inline-flex w-full items-center justify-center px-5 text-sm font-bold" aria-label="View Biome toolchain architecture portfolio sample">
+              <div class="flex-1">
+                <h2 class="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+                  Biome Toolchain — Architecture Review
+                </h2>
+                <p class="mt-5 text-sm leading-6 text-slate-300/80">
+                  Independent analysis of Rust-based formatting performance, parser architecture, cache behavior, and node-cache levers — based on the public Biome open-source codebase. Not affiliated with Biome.
+                </p>
+              </div>
+              <div class="mt-7 h-px bg-current opacity-10 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"></div>
+              <a href="biome_technical_whitepaper_fixed.pdf" class="command-button mt-7 inline-flex w-full items-center justify-center px-5 text-sm font-bold" aria-label="View Biome toolchain architecture portfolio sample">
                 View Sample Review <span class="ml-2" aria-hidden="true">&rarr;</span>
               </a>
             </div>
@@ -453,14 +459,16 @@
                 <span class="audit-kicker">Sample 03</span>
                 <span class="border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-slate-400">PDF</span>
               </div>
-              <h2 class="text-2xl font-semibold leading-tight text-white sm:text-3xl">
-                TheAlgorithms/Python — Performance Analysis
-              </h2>
-              <p class="mt-5 flex-1 text-sm leading-6 text-slate-300/80">
-                Independent analysis of memory allocation patterns, data structure pressure, algorithmic complexity, and practical risk controls — based on the public TheAlgorithms/Python open-source repository. Not affiliated with TheAlgorithms or CPython.
-              </p>
-              <div class="my-7 h-px bg-current opacity-10 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"></div>
-              <a href="the_algorithms_python_performance_review_v1_0_4.pdf" class="command-button inline-flex w-full items-center justify-center px-5 text-sm font-bold" aria-label="View TheAlgorithms Python performance analysis portfolio sample">
+              <div class="flex-1">
+                <h2 class="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+                  TheAlgorithms/Python — Performance Analysis
+                </h2>
+                <p class="mt-5 text-sm leading-6 text-slate-300/80">
+                  Independent analysis of memory allocation patterns, data structure pressure, algorithmic complexity, and practical risk controls — based on the public TheAlgorithms/Python open-source repository. Not affiliated with TheAlgorithms or CPython.
+                </p>
+              </div>
+              <div class="mt-7 h-px bg-current opacity-10 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"></div>
+              <a href="the_algorithms_python_performance_review_v1_0_4.pdf" class="command-button mt-7 inline-flex w-full items-center justify-center px-5 text-sm font-bold" aria-label="View TheAlgorithms Python performance analysis portfolio sample">
                 View Sample Review <span class="ml-2" aria-hidden="true">&rarr;</span>
               </a>
             </div>
