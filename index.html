@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>P. Aron | Engineering Audit Vault v1.0.4</title>
+  <meta name="description" content="Independent architectural assessments and production readiness reviews for high-growth software teams.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --accent: #22d3ee;
+      --accent-strong: #38bdf8;
+      --electric-border-color: #22d3ee;
+      --electric-light-color: #67e8f9;
+      --electric-gradient-color: rgba(34, 211, 238, 0.18);
+      --command: #f6c453;
+      --command-soft: #ffe7a1;
+      --command-dark: #2b2110;
+      --ink: #e2e8f0;
+      --panel: rgba(24, 24, 27, 0.72);
+    }
+
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #000;
+      color: var(--ink);
+    }
+
+    #canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      opacity: 0.3;
+      image-rendering: auto;
+      transform: translateZ(0);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle at 50% -18%, rgba(34, 211, 238, 0.18), transparent 34rem),
+        linear-gradient(180deg, rgba(2, 6, 23, 0.48) 0%, rgba(9, 9, 11, 0.74) 46%, rgba(2, 6, 23, 0.9) 100%),
+        linear-gradient(rgba(148, 163, 184, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.055) 1px, transparent 1px);
+      background-size: auto, auto, 44px 44px, 44px 44px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.74), transparent 78%);
+    }
+
+    body::after {
+      content: "CONFIDENTIAL REVISION";
+      position: fixed;
+      right: clamp(-4rem, -1vw, 1rem);
+      bottom: 16%;
+      z-index: 1;
+      transform: rotate(-90deg);
+      transform-origin: bottom right;
+      pointer-events: none;
+      color: rgba(148, 163, 184, 0.08);
+      font-size: clamp(2.4rem, 8vw, 7.5rem);
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      white-space: nowrap;
+    }
+
+    .glass-line {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025) 46%, rgba(246, 196, 83, 0.055)),
+        rgba(15, 18, 22, 0.74);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 24px 80px rgba(0,0,0,0.28);
+    }
+
+    .glass-line::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(246, 196, 83, 0.22), transparent 36%),
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: auto, 30px 30px, 30px 30px;
+      opacity: 0.46;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+    }
+
+    .vault-header {
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(2, 6, 23, 0.56), rgba(2, 6, 23, 0.22)),
+        rgba(2, 6, 23, 0.36);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 60px rgba(0, 0, 0, 0.22);
+    }
+
+    .vault-header::after {
+      content: "";
+      position: absolute;
+      left: 1rem;
+      right: 1rem;
+      bottom: -1px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(246, 196, 83, 0.52), rgba(34, 211, 238, 0.28), transparent);
+      opacity: 0.7;
+    }
+
+    .brand-mark {
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 0 24px rgba(34,211,238,0.12);
+    }
+
+    .version-chip {
+      border: 1px solid rgba(246, 196, 83, 0.34);
+      background: rgba(246, 196, 83, 0.08);
+      color: var(--command-soft);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .revision-stat {
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      padding-left: 1rem;
+    }
+
+    .revision-stat:first-child {
+      border-left: 0;
+      padding-left: 0;
+    }
+
+    @media (max-width: 640px) {
+      #canvas {
+        opacity: 0.24;
+      }
+
+      body::before {
+        background-image:
+          linear-gradient(180deg, rgba(2, 6, 23, 0.32) 0%, rgba(9, 9, 11, 0.82) 48%, rgba(2, 6, 23, 0.92) 100%),
+          linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+        background-size: auto, 38px 38px, 38px 38px;
+      }
+
+      .revision-stat {
+        padding-left: 0.7rem;
+      }
+    }
+
+    .audit-card {
+      position: relative;
+      min-height: inherit;
+      height: 100%;
+      border-radius: inherit;
+      transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+      transform-style: preserve-3d;
+      transition: transform 180ms ease, filter 180ms ease;
+      will-change: transform;
+    }
+
+    .audit-card-shell {
+      --spot-x: 50%;
+      --spot-y: 0%;
+      position: relative;
+      min-height: 27rem;
+      border-radius: 24px;
+      padding: 2px;
+      isolation: isolate;
+      background:
+        linear-gradient(-30deg, var(--electric-gradient-color), transparent 38%, var(--electric-gradient-color)),
+        linear-gradient(to bottom, rgba(24, 24, 27, 0.86), rgba(9, 9, 11, 0.92));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      perspective: 900px;
+    }
+
+    .audit-card-shell::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      z-index: -2;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at var(--spot-x) var(--spot-y), rgba(103, 232, 249, 0.54), transparent 28%),
+        linear-gradient(-30deg, rgba(103, 232, 249, 0.34), transparent, rgba(34, 211, 238, 0.28));
+      opacity: 0.46;
+      filter: blur(26px);
+      transform: scale(1.04);
+      transition: opacity 180ms ease;
+    }
+
+    .audit-card-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      border-radius: inherit;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0.44;
+      background:
+        radial-gradient(circle at var(--spot-x) var(--spot-y), rgba(255, 255, 255, 0.16), transparent 18rem),
+        linear-gradient(-30deg, rgba(255, 255, 255, 0.14), transparent 32%, transparent 68%, rgba(255, 255, 255, 0.12));
+    }
+
+    .audit-card-frame {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .audit-card-frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(34, 211, 238, 0.45);
+      border-radius: inherit;
+      padding-right: 4px;
+      padding-bottom: 4px;
+      box-shadow: inset 0 0 34px rgba(34, 211, 238, 0.08);
+    }
+
+    .audit-card-frame::after {
+      content: "";
+      position: absolute;
+      inset: -4px 4px 4px -4px;
+      border: 2px solid var(--electric-border-color);
+      border-radius: inherit;
+      opacity: 0.82;
+      box-shadow:
+        0 0 2px var(--electric-light-color),
+        0 0 14px rgba(34, 211, 238, 0.42),
+        0 0 44px rgba(34, 211, 238, 0.22);
+    }
+
+    .audit-card-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      min-height: inherit;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 22px;
+      padding: clamp(1.25rem, 2vw, 1.75rem);
+      background:
+        radial-gradient(circle at var(--spot-x) var(--spot-y), rgba(34, 211, 238, 0.12), transparent 20rem),
+        linear-gradient(180deg, rgba(39, 39, 42, 0.86), rgba(12, 12, 14, 0.86));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transform: translateZ(24px);
+    }
+
+    .audit-card-content::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+    }
+
+    .audit-kicker {
+      background:
+        radial-gradient(47.2% 50% at 50.39% 88.37%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%),
+        rgba(255, 255, 255, 0.045);
+      position: relative;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 0.48rem 0.78rem;
+      color: rgba(207, 250, 254, 0.92);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .audit-kicker::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      padding: 1px;
+      border-radius: inherit;
+      background: linear-gradient(150deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.08) 38%, rgba(103, 232, 249, 0.5));
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: xor;
+      pointer-events: none;
+    }
+
+    .command-button {
+      position: relative;
+      isolation: isolate;
+      min-height: 3.15rem;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid rgba(30, 80, 160, 0.7);
+      background:
+        radial-gradient(circle at 25% 0%, rgba(255, 255, 255, 0.14), transparent 31%),
+        linear-gradient(135deg, #1e4fa0 0%, #0f2e6b 46%, #091c45 100%);
+      color: #e2eaf8;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -10px 18px rgba(0, 10, 40, 0.22),
+        0 14px 34px rgba(15, 46, 107, 0.28);
+      text-shadow: none;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, filter 180ms ease;
+    }
+
+    .command-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background:
+        linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+      opacity: 0.28;
+      transform: translateX(-100%);
+      transition: transform 520ms ease;
+    }
+
+    .command-button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.12);
+      border-color: rgba(60, 120, 220, 0.8);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.26),
+        inset 0 -10px 18px rgba(0, 10, 40, 0.18),
+        0 18px 44px rgba(15, 46, 107, 0.38);
+    }
+
+    .command-button:hover::before {
+      transform: translateX(100%);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #canvas {
+        opacity: 0.24;
+      }
+
+      .audit-card {
+        transform: none !important;
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden antialiased selection:bg-cyan-300 selection:text-slate-950">
+  <canvas id="canvas" aria-hidden="true"></canvas>
+  <div class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-5 py-6 sm:px-8 lg:px-10">
+    <main class="flex flex-1 flex-col justify-center py-12 sm:py-16 lg:py-20">
+      <section class="grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
+        <div class="max-w-3xl">
+          <p class="mb-4 inline-flex border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
+            Technical Audit Vault
+          </p>
+          <p class="mb-2 text-sm font-semibold tracking-widest text-slate-400 uppercase">P. Aron</p>
+          <h1 class="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            Engineering Audit Vault v1.0.4
+          </h1>
+          <p class="mt-5 max-w-[21rem] text-pretty text-base leading-7 text-slate-400 sm:max-w-2xl sm:text-lg">
+            Independent architectural assessments and production readiness reviews for high-growth software teams.
+          </p>
+        </div>
+
+        <aside class="glass-line border border-white/10 p-5 sm:p-6">
+          <div class="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--command-soft)]">Confidential Revision</p>
+              <p class="mt-2 text-2xl font-semibold text-white">Audit dossier</p>
+              <p class="mt-2 max-w-md text-sm leading-6 text-slate-400">Three production-focused reviews packaged for fast architectural due diligence.</p>
+            </div>
+            <span class="version-chip w-fit rounded-full px-3 py-1 text-xs font-semibold">v1.0.4</span>
+          </div>
+          <div class="relative z-10 mt-6 grid grid-cols-3 gap-2 border-t border-white/10 pt-5 text-sm sm:gap-4">
+            <div class="revision-stat border-l-0 pl-0">
+              <p class="text-xl font-semibold text-white">3</p>
+              <p class="mt-1 text-xs text-slate-500">Whitepapers</p>
+            </div>
+            <div class="revision-stat">
+              <p class="text-xl font-semibold text-white">PBAC</p>
+              <p class="mt-1 text-xs text-slate-500">Security</p>
+            </div>
+            <div class="revision-stat">
+              <p class="text-xl font-semibold text-white">Perf</p>
+              <p class="mt-1 text-xs text-slate-500">Audits</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="mt-12 grid gap-5 md:grid-cols-3 lg:gap-6" aria-label="Whitepaper collection">
+        <article class="audit-card-shell">
+          <div class="audit-card" data-tilt-card>
+            <div class="audit-card-frame"></div>
+            <div class="audit-card-content">
+              <div class="mb-12 flex items-start justify-between gap-4">
+                <span class="audit-kicker">Audit 01</span>
+                <span class="border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-slate-400">PDF</span>
+              </div>
+              <h2 class="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+                Appwrite 1.9.x Production Readiness
+              </h2>
+              <p class="mt-5 flex-1 text-sm leading-6 text-slate-300/80">
+                Focused on PBAC security posture, service boundaries, failure domains, and horizontal scaling readiness for production Appwrite deployments.
+              </p>
+              <div class="my-7 h-px bg-current opacity-10 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"></div>
+              <a href="appwrite_production_readiness_whitepaper.pdf" class="command-button inline-flex w-full items-center justify-center px-5 text-sm font-bold" aria-label="View Appwrite production readiness whitepaper">
+                View Whitepaper <span class="ml-2" aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="audit-card-shell">
+          <div class="audit-card" data-tilt-card>
+            <div class="audit-card-frame"></div>
+            <div class="audit-card-content">
+              <div class="mb-12 flex items-start justify-between gap-4">
+                <span class="audit-kicker">Audit 02</span>
+                <span class="border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-slate-400">PDF</span>
+              </div>
+              <h2 class="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+                Biome Toolchain Architecture
+              </h2>
+              <p class="mt-5 flex-1 text-sm leading-6 text-slate-300/80">
+                Focused on Rust-based formatting performance, parser architecture, cache behavior, and node-cache levers for fast developer feedback loops.
+              </p>
+              <div class="my-7 h-px bg-current opacity-10 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"></div>
+              <a href="biome_technical_whitepaper_fixed.pdf" class="command-button inline-flex w-full items-center justify-center px-5 text-sm font-bold" aria-label="View Biome toolchain architecture whitepaper">
+                View Whitepaper <span class="ml-2" aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="audit-card-shell">
+          <div class="audit-card" data-tilt-card>
+            <div class="audit-card-frame"></div>
+            <div class="audit-card-content">
+              <div class="mb-12 flex items-start justify-between gap-4">
+                <span class="audit-kicker">Audit 03</span>
+                <span class="border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-slate-400">PDF</span>
+              </div>
+              <h2 class="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+                CPython Performance Audit
+              </h2>
+              <p class="mt-5 flex-1 text-sm leading-6 text-slate-300/80">
+                Focused on memory allocation patterns, data structure pressure, algorithmic safety, and practical risk controls for Python codebases.
+              </p>
+              <div class="my-7 h-px bg-current opacity-10 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"></div>
+              <a href="the_algorithms_python_confidential_audit_v1_0_4%20.pdf" class="command-button inline-flex w-full items-center justify-center px-5 text-sm font-bold" aria-label="View CPython performance audit whitepaper">
+                View Whitepaper <span class="ml-2" aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="flex flex-col gap-3 border-t border-white/10 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+      <p>Confidential Revision | P. Aron Technical Audit Vault</p>
+      <p>Independent systems review by @Paaron1</p>
+    </footer>
+  </div>
+  <script>
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const gl = canvas.getContext("webgl2", {
+        antialias: false,
+        depth: false,
+        stencil: false,
+        desynchronized: true,
+        powerPreference: "low-power"
+      });
+
+      if (!gl) {
+        canvas.style.display = "none";
+        return;
+      }
+
+      const vertexSource = `#version 300 es
+precision highp float;
+
+in vec2 position;
+
+void main() {
+  gl_Position = vec4(position, 0.0, 1.0);
+}
+`;
+
+      const fragmentSource = `#version 300 es
+precision highp float;
+
+out vec4 fragColor;
+
+#define PI 3.14159265358979323846
+
+uniform float width;
+uniform float height;
+uniform float time;
+uniform float scale;
+uniform int pattern;
+uniform vec3 hueTb[15];
+
+vec4 permute(vec4 x) {
+  return mod(((x * 34.0) + 1.0) * x, 289.0);
+}
+
+vec4 taylorInvSqrt(vec4 r) {
+  return 1.79284291400159 - 0.85373472095314 * r;
+}
+
+float snoise(vec3 v) {
+  const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+
+  vec3 i = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+  vec3 x3 = x0 - 1.0 + 3.0 * C.xxx;
+
+  i = mod(i, 289.0);
+  vec4 p = permute(permute(permute(
+             i.z + vec4(0.0, i1.z, i2.z, 1.0))
+           + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+           + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+
+  float n_ = 1.0 / 7.0;
+  vec3 ns = n_ * D.wyz - D.xzx;
+
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+
+  vec4 s0 = floor(b0) * 2.0 + 1.0;
+  vec4 s1 = floor(b1) * 2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+
+  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+
+  vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+
+  vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+}
+
+void main() {
+  vec2 resolution = vec2(width, height);
+  vec2 uv = (gl_FragCoord.xy - resolution / 2.0) / min(resolution.x, resolution.y);
+
+  float light = (snoise(vec3(uv * scale, time)) + 1.0) * 0.5;
+  light = clamp(15.0 * light, 0.0, 14.0);
+
+  vec3 hue = hueTb[int(floor(light))];
+
+  switch (pattern) {
+    case 0:
+      light = 1.0;
+      break;
+    case 1:
+      light = (1.0 - cos(light * 2.0 * PI)) * 0.5;
+      break;
+    case 2:
+      light = fract(light) < 0.3 ? 1.0 : 0.0;
+      break;
+  }
+
+  fragColor = vec4(light * hue, 1.0);
+}
+`;
+
+      function compileShader(source, type) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          throw new Error(gl.getShaderInfoLog(shader) || "Shader compilation failed.");
+        }
+
+        return shader;
+      }
+
+      function getAttribLocation(program, name) {
+        const location = gl.getAttribLocation(program, name);
+
+        if (location === -1) {
+          throw new Error(`Cannot find attribute ${name}.`);
+        }
+
+        return location;
+      }
+
+      function getUniformLocation(program, name) {
+        const location = gl.getUniformLocation(program, name);
+
+        if (location === null) {
+          throw new Error(`Cannot find uniform ${name}.`);
+        }
+
+        return location;
+      }
+
+      const vertexShader = compileShader(vertexSource, gl.VERTEX_SHADER);
+      const fragmentShader = compileShader(fragmentSource, gl.FRAGMENT_SHADER);
+      const program = gl.createProgram();
+
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        throw new Error(gl.getProgramInfoLog(program) || "Shader program link failed.");
+      }
+
+      gl.useProgram(program);
+
+      const vertexData = new Float32Array([
+        -1.0, 1.0,
+        -1.0, -1.0,
+        1.0, 1.0,
+        1.0, -1.0
+      ]);
+
+      const vertexDataBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
+
+      const positionHandle = getAttribLocation(program, "position");
+      gl.enableVertexAttribArray(positionHandle);
+      gl.vertexAttribPointer(positionHandle, 2, gl.FLOAT, false, 2 * 4, 0);
+
+      const widthHandle = getUniformLocation(program, "width");
+      const heightHandle = getUniformLocation(program, "height");
+      const timeHandle = getUniformLocation(program, "time");
+      const scaleHandle = getUniformLocation(program, "scale");
+      const patternHandle = getUniformLocation(program, "pattern");
+      const hueTbHandle = getUniformLocation(program, "hueTb");
+
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const fixedScale = 4.65;
+      const fixedSpeed = prefersReducedMotion ? 0 : 0.085;
+      let runTime = 0;
+      let prevT = performance.now();
+      let lastDraw = 0;
+
+      const hueTable = [
+        0.00, 0.00, 0.00,
+        0.00, 0.04, 0.06,
+        0.00, 0.10, 0.14,
+        0.00, 0.18, 0.24,
+        0.00, 0.28, 0.34,
+        0.02, 0.42, 0.48,
+        0.05, 0.62, 0.68,
+        0.08, 0.78, 0.86,
+        0.11, 0.92, 1.00,
+        0.25, 0.95, 1.00,
+        0.12, 0.80, 0.92,
+        0.04, 0.56, 0.70,
+        0.00, 0.30, 0.42,
+        0.00, 0.12, 0.18,
+        0.00, 0.00, 0.00
+      ];
+
+      function resizeCanvas() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const targetPixelRatio = Math.min(Math.max(window.devicePixelRatio || 1, 1.2), 1.55);
+        const maxPixels = 2200000;
+        const pixelRatio = Math.min(targetPixelRatio, Math.sqrt(maxPixels / (width * height)));
+
+        canvas.width = Math.floor(width * pixelRatio);
+        canvas.height = Math.floor(height * pixelRatio);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.uniform1f(widthHandle, canvas.width);
+        gl.uniform1f(heightHandle, canvas.height);
+      }
+
+      gl.uniform1f(scaleHandle, fixedScale);
+      gl.uniform1i(patternHandle, 1);
+      gl.uniform3fv(hueTbHandle, hueTable);
+      resizeCanvas();
+
+      window.addEventListener("resize", resizeCanvas, { passive: true });
+
+      function draw() {
+        const now = performance.now();
+        requestAnimationFrame(draw);
+
+        if (document.hidden || now - lastDraw < 42) {
+          return;
+        }
+
+        const dt = Math.min(now - prevT, 100);
+        prevT = now;
+        lastDraw = now;
+        runTime += dt * 0.001 * fixedSpeed;
+
+        gl.uniform1f(timeHandle, runTime);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+
+      if (!prefersReducedMotion) {
+        requestAnimationFrame(draw);
+      } else {
+        gl.uniform1f(timeHandle, runTime);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        prevT = performance.now();
+      });
+    })();
+
+    (() => {
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+      if (reduceMotion || !canHover) {
+        return;
+      }
+
+      document.querySelectorAll("[data-tilt-card]").forEach((card) => {
+        const shell = card.closest(".audit-card-shell");
+        let frame = 0;
+
+        function resetTilt() {
+          card.style.setProperty("--tilt-x", "0deg");
+          card.style.setProperty("--tilt-y", "0deg");
+          shell?.style.setProperty("--spot-x", "50%");
+          shell?.style.setProperty("--spot-y", "0%");
+        }
+
+        card.addEventListener("pointermove", (event) => {
+          if (frame) {
+            cancelAnimationFrame(frame);
+          }
+
+          frame = requestAnimationFrame(() => {
+            const rect = card.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width;
+            const y = (event.clientY - rect.top) / rect.height;
+            const rotateX = (0.5 - y) * 9;
+            const rotateY = (x - 0.5) * 11;
+
+            card.style.setProperty("--tilt-x", `${rotateX.toFixed(2)}deg`);
+            card.style.setProperty("--tilt-y", `${rotateY.toFixed(2)}deg`);
+            shell?.style.setProperty("--spot-x", `${(x * 100).toFixed(1)}%`);
+            shell?.style.setProperty("--spot-y", `${(y * 100).toFixed(1)}%`);
+          });
+        });
+
+        card.addEventListener("pointerleave", resetTilt);
+      });
+    })();
+  </script>
+</body>
+</html>
